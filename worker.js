@@ -134,11 +134,12 @@ async function handleMessage(message) {
   }
 
   const fwd = await forwardMessage(Number(OWNER_ID), message.chat.id, message.message_id);
-  if (fwd.ok) {
+  const sentMessage = fwd.ok ? fwd : await copyMessage(Number(OWNER_ID), message.chat.id, message.message_id);
+  if (sentMessage.ok) {
     await sendMessage(
       Number(OWNER_ID),
       `Reference ID: ${message.chat.id}\n[${message.from.first_name}](tg://user?id=${message.from.id})`,
-      fwd.result.message_id
+      sentMessage.result.message_id
     );
   }
 }
