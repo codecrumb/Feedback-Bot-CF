@@ -131,15 +131,17 @@ async function handleInfo(message) {
 async function handleMessage(message) {
   if (message.chat.id === Number(OWNER_ID)) {
     if (!message.reply_to_message) return;
-    const referenceId = getReferenceIdFromReply(message.reply_to_message);
-    if (!referenceId) return;
-    await copyMessage(referenceId, message.chat.id, message.message_id);
+    const targetId = message.reply_to_message.forward_from?.id
+      || getReferenceIdFromReply(message.reply_to_message);
+    if (!targetId) return;
+    await copyMessage(targetId, message.chat.id, message.message_id);
     return;
   }
 
   const fwd = await forwardMessage(Number(OWNER_ID), message.chat.id, message.message_id);
   const sentMessage = fwd.ok ? fwd : await copyMessage(Number(OWNER_ID), message.chat.id, message.message_id);
-  if (sentMessage.ok) {
+  const forwardIdentifiable = fwd.ok && fwd.result?.forward_from?.id;
+  if (sentMessage.ok && !forwardIdentifiable) {
     await sendMessage(
       Number(OWNER_ID),
       `Reference ID: ${message.chat.id}\n[${message.from.first_name}](tg://user?id=${message.from.id})`,
