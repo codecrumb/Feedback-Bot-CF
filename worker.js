@@ -235,9 +235,8 @@ async function handleTextMessage(message) {
     return;
   }
 
-  const info = await getUsers(message.from.id);
   const referenceId = message.chat.id;
-  await sendMessage(Number(OWNER_ID), IF_TEXT.replace("{}", referenceId).replace("{}", info.first_name).replace("{}", message.text));
+  await sendMessage(Number(OWNER_ID), IF_TEXT.replace("{}", referenceId).replace("{}", message.from.first_name).replace("{}", message.text));
 }
 
 // ---------- Media Group Message Handler ---------- //
@@ -260,9 +259,8 @@ async function handlePhotoMessage(message) {
     return;
   }
 
-  const info = await getUsers(message.from.id);
   const referenceId = message.chat.id;
-  let caption = IF_CONTENT.replace("{}", referenceId).replace("{}", info.first_name);
+  let caption = IF_CONTENT.replace("{}", referenceId).replace("{}", message.from.first_name);
   if (message.caption) caption += `\n\n${message.caption}`;
 
   const fileId = message.photo[message.photo.length - 1].file_id;
@@ -275,9 +273,8 @@ async function handleVideoMessage(message) {
     return;
   }
 
-  const info = await getUsers(message.from.id);
   const referenceId = message.chat.id;
-  let caption = IF_CONTENT.replace("{}", referenceId).replace("{}", info.first_name);
+  let caption = IF_CONTENT.replace("{}", referenceId).replace("{}", message.from.first_name);
   if (message.caption) caption += `\n\n${message.caption}`;
 
   await sendVideo(Number(OWNER_ID), message.video.file_id, caption);
@@ -289,9 +286,8 @@ async function handleAudioMessage(message) {
     return;
   }
 
-  const info = await getUsers(message.from.id);
   const referenceId = message.chat.id;
-  let caption = IF_CONTENT.replace("{}", referenceId).replace("{}", info.first_name);
+  let caption = IF_CONTENT.replace("{}", referenceId).replace("{}", message.from.first_name);
   if (message.caption) caption += `\n\n${message.caption}`;
 
   await sendAudio(Number(OWNER_ID), message.audio.file_id, caption);
@@ -303,9 +299,8 @@ async function handleDocumentMessage(message) {
     return;
   }
 
-  const info = await getUsers(message.from.id);
   const referenceId = message.chat.id;
-  let caption = IF_CONTENT.replace("{}", referenceId).replace("{}", info.first_name);
+  let caption = IF_CONTENT.replace("{}", referenceId).replace("{}", message.from.first_name);
   if (message.caption) caption += `\n\n${message.caption}`;
 
   await sendDocument(Number(OWNER_ID), message.document.file_id, caption);
@@ -317,10 +312,7 @@ async function handleStickerMessage(message) {
     return;
   }
 
-  const info = await getUsers(message.from.id);
   const referenceId = message.chat.id;
-  const caption = IF_CONTENT.replace("{}", referenceId).replace("{}", info.first_name);
-
   await sendSticker(Number(OWNER_ID), message.sticker.file_id);
 }
 
@@ -330,9 +322,8 @@ async function handleVoiceMessage(message) {
     return;
   }
 
-  const info = await getUsers(message.from.id);
   const referenceId = message.chat.id;
-  let caption = IF_CONTENT.replace("{}", referenceId).replace("{}", info.first_name);
+  let caption = IF_CONTENT.replace("{}", referenceId).replace("{}", message.from.first_name);
   if (message.caption) caption += `\n\n${message.caption}`;
 
   await sendVoice(Number(OWNER_ID), message.voice.file_id, caption);
@@ -343,9 +334,6 @@ async function handleVideoNoteMessage(message) {
     await replayMedia(message);
     return;
   }
-
-  const info = await getUsers(message.from.id);
-  const referenceId = message.chat.id;
 
   await sendVideoNote(Number(OWNER_ID), message.video_note.file_id);
 }
