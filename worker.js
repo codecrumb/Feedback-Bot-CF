@@ -1,10 +1,10 @@
 // ---------- Configuration ---------- //
-
-const BOT_TOKEN = '1234567890:ABCDEfghijklmno-PQrstuvwxYZ'; // Your Bot's Token (from BotFather)
-const BOT_WEBHOOK = '/endpoint'; // Path for Telegram updates
-const BOT_SECRET = 'akkil123456'; // Secret for webhook verification
-const LOG_CHANNEL = '-1234567890'; // Channel ID for logs
-const OWNER_ID = 1428968542; // Your Telegram User ID (Admin)
+// Set these as environment variables in your Cloudflare Worker settings:
+//   BOT_TOKEN   — Your Bot's Token (from BotFather)
+//   BOT_WEBHOOK — Path for Telegram updates (e.g. /endpoint)
+//   BOT_SECRET  — Secret for webhook verification
+//   LOG_CHANNEL — Channel ID for logs (e.g. -1234567890)
+//   OWNER_ID    — Your Telegram User ID (Admin)
 
 // ---------- Constants & Helpers ---------- //
 
@@ -225,7 +225,7 @@ async function onMessage(message) {
 // ---------- Text Message Handler ---------- //
 
 async function handleTextMessage(message, isGroup) {
-  if (message.from.id === OWNER_ID) {
+  if (message.from.id === Number(OWNER_ID)) {
     await replyText(message);
     return;
   }
@@ -237,7 +237,7 @@ async function handleTextMessage(message, isGroup) {
 // ---------- Media Group Message Handler ---------- //
 
 async function handleMediaGroupMessage(message, isGroup) {
-  if (message.from.id === OWNER_ID) {
+  if (message.from.id === Number(OWNER_ID)) {
     await replayMedia(message);
     return;
   }
@@ -249,7 +249,7 @@ async function handleMediaGroupMessage(message, isGroup) {
 // ---------- Media Message Handlers ---------- //
 
 async function handleMediaMessage(message, isGroup) {
-  if (message.from.id === OWNER_ID) {
+  if (message.from.id === Number(OWNER_ID)) {
     await replayMedia(message);
     return;
   }
@@ -277,7 +277,7 @@ async function handleMediaMessage(message, isGroup) {
 }
 
 async function handlePhotoMessage(message, isGroup) {
-    if (message.from.id === OWNER_ID) {
+    if (message.from.id === Number(OWNER_ID)) {
       await replayMedia(message);
       return;
     }
@@ -295,7 +295,7 @@ async function handlePhotoMessage(message, isGroup) {
   }
   
   async function handleVideoMessage(message, isGroup) {
-    if (message.from.id === OWNER_ID) {
+    if (message.from.id === Number(OWNER_ID)) {
       await replayMedia(message);
       return;
     }
@@ -312,7 +312,7 @@ async function handlePhotoMessage(message, isGroup) {
   }
   
   async function handleAudioMessage(message, isGroup) {
-    if (message.from.id === OWNER_ID) {
+    if (message.from.id === Number(OWNER_ID)) {
       await replayMedia(message);
       return;
     }
@@ -329,7 +329,7 @@ async function handlePhotoMessage(message, isGroup) {
   }
   
   async function handleDocumentMessage(message, isGroup) {
-    if (message.from.id === OWNER_ID) {
+    if (message.from.id === Number(OWNER_ID)) {
       await replayMedia(message);
       return;
     }
@@ -346,7 +346,7 @@ async function handlePhotoMessage(message, isGroup) {
   }
   
   async function handleStickerMessage(message, isGroup) {
-    if (message.from.id === OWNER_ID) {
+    if (message.from.id === Number(OWNER_ID)) {
       await replayMedia(message);
       return;
     }
