@@ -3,17 +3,14 @@
 //   BOT_TOKEN        — Your Bot's Token (from BotFather)
 //   BOT_WEBHOOK      — Path for Telegram updates (e.g. /endpoint)
 //   BOT_SECRET       — Secret for webhook verification
-//   OWNER_ID         — Your Telegram User ID (Admin)
+//   OWNER_ID         — Your Telegram User ID or Group Chat ID (admin inbox)
 //   NOTIFY_ON_START  — Set to "true" to notify you when a user sends /start
 
-// ---------- Constants & Helpers ---------- //
-
-const IF_TEXT = "Reference ID: {}\nFrom: {}\n\n{}";
-const IF_CONTENT = "Reference ID: {}\nFrom: {}";
+// ---------- Constants ---------- //
 
 const HEADERS_JSON = { 'Content-Type': 'application/json' };
 
-// ---------- Telegram API Functions ---------- //
+// ---------- Telegram API ---------- //
 
 async function api(method, params) {
   const url = `https://api.telegram.org/bot${BOT_TOKEN}/${method}`;
@@ -22,101 +19,24 @@ async function api(method, params) {
     headers: params ? { 'Content-Type': 'application/json' } : undefined,
     body: params ? JSON.stringify(params) : undefined
   });
-
   return response.json();
-}
-
-async function getMe() {
-  return api('getMe');
 }
 
 async function sendMessage(chat_id, text, reply_to_message_id = null) {
   return api('sendMessage', { chat_id, text, reply_to_message_id, parse_mode: 'Markdown' });
 }
 
-async function copyMessage(chat_id, from_chat_id, message_id, caption = null) {
-  return api('copyMessage', { chat_id, from_chat_id, message_id, caption, parse_mode: 'Markdown' });
+async function forwardMessage(chat_id, from_chat_id, message_id) {
+  return api('forwardMessage', { chat_id, from_chat_id, message_id });
 }
 
-async function copyMediaGroup(chat_id, from_chat_id, message_id) {
+async function copyMessage(chat_id, from_chat_id, message_id) {
   return api('copyMessage', { chat_id, from_chat_id, message_id });
 }
 
-async function sendPhoto(chatId, photo, caption = null, replyToMessageId = null) {
-  return api("sendPhoto", {
-    chat_id: chatId,
-    photo: photo,
-    caption: caption,
-    parse_mode: "Markdown",
-    reply_to_message_id: replyToMessageId,
-  });
-}
-
-async function sendVideo(chatId, video, caption = null, replyToMessageId = null) {
-  return api("sendVideo", {
-    chat_id: chatId,
-    video: video,
-    caption: caption,
-    parse_mode: "Markdown",
-    reply_to_message_id: replyToMessageId,
-  });
-}
-
-async function sendAudio(chatId, audio, caption = null, replyToMessageId = null) {
-  return api("sendAudio", {
-    chat_id: chatId,
-    audio: audio,
-    caption: caption,
-    parse_mode: "Markdown",
-    reply_to_message_id: replyToMessageId,
-  });
-}
-
-async function sendDocument(chatId, document, caption = null, replyToMessageId = null) {
-  return api("sendDocument", {
-    chat_id: chatId,
-    document: document,
-    caption: caption,
-    parse_mode: "Markdown",
-    reply_to_message_id: replyToMessageId,
-  });
-}
-
-async function sendSticker(chatId, sticker, replyToMessageId = null) {
-  return api("sendSticker", {
-    chat_id: chatId,
-    sticker: sticker,
-    reply_to_message_id: replyToMessageId,
-  });
-}
-
-async function sendVoice(chatId, voice, caption = null, replyToMessageId = null) {
-  return api("sendVoice", {
-    chat_id: chatId,
-    voice: voice,
-    caption: caption,
-    parse_mode: "Markdown",
-    reply_to_message_id: replyToMessageId,
-  });
-}
-
-async function sendVideoNote(chatId, video_note, replyToMessageId = null) {
-  return api("sendVideoNote", {
-    chat_id: chatId,
-    video_note: video_note,
-    reply_to_message_id: replyToMessageId,
-  });
-}
-
-async function getUsers(user_ids) {
-  const response = await api("getChat", { chat_id: user_ids });
-
-  if (response.ok) {
-    return response.result;
-  } else {
-    console.error("Error getting user info:", response);
-    return null;
-  }
+async function getUsers(chat_id) {
+  const response = await api('getChat', { chat_id });
+  return response.ok ? response.result : null;
 }
 
 // ---------- Webhook Handling ---------- //
@@ -125,7 +45,6 @@ async function handleWebhook(request) {
   if (request.headers.get('X-Telegram-Bot-Api-Secret-Token') !== BOT_SECRET) {
     return new Response('Unauthorized', { status: 403 });
   }
-
   const update = await request.json();
   await onUpdate(update);
   return new Response('OK');
@@ -134,11 +53,7 @@ async function handleWebhook(request) {
 async function registerWebhook(request) {
   const url = new URL(request.url);
   const webhookUrl = `${url.protocol}//${url.hostname}${BOT_WEBHOOK}`;
-  const response = await api('setWebhook', {
-    url: webhookUrl,
-    secret_token: BOT_SECRET
-  });
-
+  const response = await api('setWebhook', { url: webhookUrl, secret_token: BOT_SECRET });
   return new Response(JSON.stringify(response), { headers: HEADERS_JSON });
 }
 
@@ -158,8 +73,6 @@ async function onUpdate(update) {
 // ---------- Message Handler ---------- //
 
 async function onMessage(message) {
-  const chatId = message.from.id;
-
   if (message.text === '/start') {
     await handleStart(message);
     return;
@@ -170,25 +83,7 @@ async function onMessage(message) {
     return;
   }
 
-  if (message.text) {
-    await handleTextMessage(message);
-  } else if (message.media_group_id && message.photo) {
-    await handleMediaGroupMessage(message);
-  } else if (message.photo) {
-    await handlePhotoMessage(message);
-  } else if (message.video) {
-    await handleVideoMessage(message);
-  } else if (message.audio) {
-    await handleAudioMessage(message);
-  } else if (message.document) {
-    await handleDocumentMessage(message);
-  } else if (message.sticker) {
-    await handleStickerMessage(message);
-  } else if (message.voice) {
-    await handleVoiceMessage(message);
-  } else if (message.video_note) {
-    await handleVideoNoteMessage(message);
-  }
+  await handleMessage(message);
 }
 
 // ---------- Start Handler ---------- //
@@ -206,7 +101,7 @@ async function handleStart(message) {
 
 async function handleInfo(message) {
   if (!message.reply_to_message) {
-    await sendMessage(Number(OWNER_ID), 'Reply to a forwarded message with /info to get user details.');
+    await sendMessage(Number(OWNER_ID), 'Reply to a reference message with /info to get user details.');
     return;
   }
 
@@ -227,166 +122,33 @@ async function handleInfo(message) {
   await sendMessage(Number(OWNER_ID), `*Name:* [${name}](tg://user?id=${referenceId})\n*ID:* \`${referenceId}\`\n*Username:* ${username}`);
 }
 
-// ---------- Text Message Handler ---------- //
+// ---------- Main Message Handler ---------- //
 
-async function handleTextMessage(message) {
+async function handleMessage(message) {
   if (message.chat.id === Number(OWNER_ID)) {
-    await replyText(message);
+    if (!message.reply_to_message) return;
+    const referenceId = getReferenceIdFromReply(message.reply_to_message);
+    if (!referenceId) return;
+    await copyMessage(referenceId, message.chat.id, message.message_id);
     return;
   }
 
-  const referenceId = message.chat.id;
-  await sendMessage(Number(OWNER_ID), IF_TEXT.replace("{}", referenceId).replace("{}", message.from.first_name).replace("{}", message.text));
-}
-
-// ---------- Media Group Message Handler ---------- //
-
-async function handleMediaGroupMessage(message) {
-  if (message.chat.id === Number(OWNER_ID)) {
-    await replayMedia(message);
-    return;
-  }
-
-  const referenceId = message.chat.id;
-  await copyMediaGroup(Number(OWNER_ID), referenceId, message.message_id);
-}
-
-// ---------- Media Message Handlers ---------- //
-
-async function handlePhotoMessage(message) {
-  if (message.chat.id === Number(OWNER_ID)) {
-    await replayMedia(message);
-    return;
-  }
-
-  const referenceId = message.chat.id;
-  let caption = IF_CONTENT.replace("{}", referenceId).replace("{}", message.from.first_name);
-  if (message.caption) caption += `\n\n${message.caption}`;
-
-  const fileId = message.photo[message.photo.length - 1].file_id;
-  await sendPhoto(Number(OWNER_ID), fileId, caption);
-}
-
-async function handleVideoMessage(message) {
-  if (message.chat.id === Number(OWNER_ID)) {
-    await replayMedia(message);
-    return;
-  }
-
-  const referenceId = message.chat.id;
-  let caption = IF_CONTENT.replace("{}", referenceId).replace("{}", message.from.first_name);
-  if (message.caption) caption += `\n\n${message.caption}`;
-
-  await sendVideo(Number(OWNER_ID), message.video.file_id, caption);
-}
-
-async function handleAudioMessage(message) {
-  if (message.chat.id === Number(OWNER_ID)) {
-    await replayMedia(message);
-    return;
-  }
-
-  const referenceId = message.chat.id;
-  let caption = IF_CONTENT.replace("{}", referenceId).replace("{}", message.from.first_name);
-  if (message.caption) caption += `\n\n${message.caption}`;
-
-  await sendAudio(Number(OWNER_ID), message.audio.file_id, caption);
-}
-
-async function handleDocumentMessage(message) {
-  if (message.chat.id === Number(OWNER_ID)) {
-    await replayMedia(message);
-    return;
-  }
-
-  const referenceId = message.chat.id;
-  let caption = IF_CONTENT.replace("{}", referenceId).replace("{}", message.from.first_name);
-  if (message.caption) caption += `\n\n${message.caption}`;
-
-  await sendDocument(Number(OWNER_ID), message.document.file_id, caption);
-}
-
-async function handleStickerMessage(message) {
-  if (message.chat.id === Number(OWNER_ID)) {
-    await replayMedia(message);
-    return;
-  }
-
-  const referenceId = message.chat.id;
-  await sendSticker(Number(OWNER_ID), message.sticker.file_id);
-}
-
-async function handleVoiceMessage(message) {
-  if (message.chat.id === Number(OWNER_ID)) {
-    await replayMedia(message);
-    return;
-  }
-
-  const referenceId = message.chat.id;
-  let caption = IF_CONTENT.replace("{}", referenceId).replace("{}", message.from.first_name);
-  if (message.caption) caption += `\n\n${message.caption}`;
-
-  await sendVoice(Number(OWNER_ID), message.voice.file_id, caption);
-}
-
-async function handleVideoNoteMessage(message) {
-  if (message.chat.id === Number(OWNER_ID)) {
-    await replayMedia(message);
-    return;
-  }
-
-  await sendVideoNote(Number(OWNER_ID), message.video_note.file_id);
-}
-
-// ---------- Reply Handlers (for Owner) ---------- //
-
-async function replyText(message) {
-  if (!message.reply_to_message) return;
-
-  const referenceId = getReferenceIdFromReply(message.reply_to_message);
-  if (!referenceId) return;
-
-  await sendMessage(referenceId, message.text);
-}
-
-async function replayMedia(message) {
-  if (!message.reply_to_message) return;
-
-  const referenceId = getReferenceIdFromReply(message.reply_to_message);
-  if (!referenceId) return;
-
-  if (message.media_group_id) {
-    await copyMediaGroup(referenceId, message.chat.id, message.message_id);
-  } else if (message.photo) {
-    const fileId = message.photo[message.photo.length - 1].file_id;
-    await sendPhoto(referenceId, fileId, message.caption, message.message_id);
-  } else if (message.video) {
-    await sendVideo(referenceId, message.video.file_id, message.caption, message.message_id);
-  } else if (message.audio) {
-    await sendAudio(referenceId, message.audio.file_id, message.caption, message.message_id);
-  } else if (message.document) {
-    await sendDocument(referenceId, message.document.file_id, message.caption, message.message_id);
-  } else if (message.sticker) {
-    await sendSticker(referenceId, message.sticker.file_id, message.message_id);
-  } else if (message.voice) {
-    await sendVoice(referenceId, message.voice.file_id, message.caption, message.message_id);
-  } else if (message.video_note) {
-    await sendVideoNote(referenceId, message.video_note.file_id, message.message_id);
+  const fwd = await forwardMessage(Number(OWNER_ID), message.chat.id, message.message_id);
+  if (fwd.ok) {
+    await sendMessage(
+      Number(OWNER_ID),
+      `Reference ID: ${message.chat.id}\n[${message.from.first_name}](tg://user?id=${message.from.id})`,
+      fwd.result.message_id
+    );
   }
 }
 
-// ---------- Helper Function for Replies ---------- //
+// ---------- Helper ---------- //
 
 function getReferenceIdFromReply(replyToMessage) {
-  let referenceId = null;
-  if (replyToMessage.text) {
-    const match = replyToMessage.text.match(/Reference ID: (\d+)/);
-    if (match) referenceId = parseInt(match[1]);
-  } else if (replyToMessage.caption) {
-    const match = replyToMessage.caption.match(/Reference ID: (\d+)/);
-    if (match) referenceId = parseInt(match[1]);
-  }
-  return referenceId;
+  const text = replyToMessage.text || replyToMessage.caption || '';
+  const match = text.match(/Reference ID: (\d+)/);
+  return match ? parseInt(match[1]) : null;
 }
 
 // ---------- Event Listener ---------- //
