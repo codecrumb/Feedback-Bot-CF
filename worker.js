@@ -130,11 +130,23 @@ async function handleInfo(message) {
 
 async function handleMessage(message) {
   if (message.chat.id === Number(OWNER_ID)) {
-    if (!message.reply_to_message) return;
+    if (!message.reply_to_message) {
+      if (message.forward_from || message.forward_from_chat || message.forward_sender_name || message.forward_origin) {
+        await sendMessage(Number(OWNER_ID), 'Reply to this message with @username or numeric ID to send it to someone.', message.message_id);
+      }
+      return;
+    }
     const targetId = message.reply_to_message.forward_from?.id
       || getReferenceIdFromReply(message.reply_to_message);
-    if (!targetId) return;
-    await copyMessage(targetId, message.chat.id, message.message_id);
+    if (targetId) {
+      await copyMessage(targetId, message.chat.id, message.message_id);
+      return;
+    }
+    const outboundTarget = parseTarget(message.text);
+    if (outboundTarget) {
+      const fwd = await forwardMessage(outboundTarget, message.chat.id, message.reply_to_message.message_id);
+      if (!fwd.ok) await copyMessage(outboundTarget, message.chat.id, message.reply_to_message.message_id);
+    }
     return;
   }
 
@@ -151,6 +163,14 @@ async function handleMessage(message) {
 }
 
 // ---------- Helper ---------- //
+
+function parseTarget(text) {
+  if (!text) return null;
+  const t = text.trim();
+  if (/^-?\d+$/.test(t)) return parseInt(t);
+  if (/^@\w+$/.test(t)) return t;
+  return null;
+}
 
 function getReferenceIdFromReply(replyToMessage) {
   const text = replyToMessage.text || replyToMessage.caption || '';
