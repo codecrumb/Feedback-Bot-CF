@@ -165,7 +165,7 @@ async function onMessage(message) {
     return;
   }
 
-  if (message.text === '/info' && message.from.id === Number(OWNER_ID)) {
+  if (message.text === '/info' && message.chat.id === Number(OWNER_ID)) {
     await handleInfo(message);
     return;
   }
@@ -230,7 +230,7 @@ async function handleInfo(message) {
 // ---------- Text Message Handler ---------- //
 
 async function handleTextMessage(message) {
-  if (message.from.id === Number(OWNER_ID)) {
+  if (message.chat.id === Number(OWNER_ID)) {
     await replyText(message);
     return;
   }
@@ -243,7 +243,7 @@ async function handleTextMessage(message) {
 // ---------- Media Group Message Handler ---------- //
 
 async function handleMediaGroupMessage(message) {
-  if (message.from.id === Number(OWNER_ID)) {
+  if (message.chat.id === Number(OWNER_ID)) {
     await replayMedia(message);
     return;
   }
@@ -255,7 +255,7 @@ async function handleMediaGroupMessage(message) {
 // ---------- Media Message Handlers ---------- //
 
 async function handlePhotoMessage(message) {
-  if (message.from.id === Number(OWNER_ID)) {
+  if (message.chat.id === Number(OWNER_ID)) {
     await replayMedia(message);
     return;
   }
@@ -270,7 +270,7 @@ async function handlePhotoMessage(message) {
 }
 
 async function handleVideoMessage(message) {
-  if (message.from.id === Number(OWNER_ID)) {
+  if (message.chat.id === Number(OWNER_ID)) {
     await replayMedia(message);
     return;
   }
@@ -284,7 +284,7 @@ async function handleVideoMessage(message) {
 }
 
 async function handleAudioMessage(message) {
-  if (message.from.id === Number(OWNER_ID)) {
+  if (message.chat.id === Number(OWNER_ID)) {
     await replayMedia(message);
     return;
   }
@@ -298,7 +298,7 @@ async function handleAudioMessage(message) {
 }
 
 async function handleDocumentMessage(message) {
-  if (message.from.id === Number(OWNER_ID)) {
+  if (message.chat.id === Number(OWNER_ID)) {
     await replayMedia(message);
     return;
   }
@@ -312,7 +312,7 @@ async function handleDocumentMessage(message) {
 }
 
 async function handleStickerMessage(message) {
-  if (message.from.id === Number(OWNER_ID)) {
+  if (message.chat.id === Number(OWNER_ID)) {
     await replayMedia(message);
     return;
   }
@@ -325,7 +325,7 @@ async function handleStickerMessage(message) {
 }
 
 async function handleVoiceMessage(message) {
-  if (message.from.id === Number(OWNER_ID)) {
+  if (message.chat.id === Number(OWNER_ID)) {
     await replayMedia(message);
     return;
   }
@@ -339,7 +339,7 @@ async function handleVoiceMessage(message) {
 }
 
 async function handleVideoNoteMessage(message) {
-  if (message.from.id === Number(OWNER_ID)) {
+  if (message.chat.id === Number(OWNER_ID)) {
     await replayMedia(message);
     return;
   }
