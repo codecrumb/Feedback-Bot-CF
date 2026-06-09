@@ -45,8 +45,12 @@ async function handleWebhook(request) {
   if (request.headers.get('X-Telegram-Bot-Api-Secret-Token') !== BOT_SECRET) {
     return new Response('Unauthorized', { status: 403 });
   }
-  const update = await request.json();
-  await onUpdate(update);
+  try {
+    const update = await request.json();
+    await onUpdate(update);
+  } catch (e) {
+    console.error('Unhandled error in onUpdate:', e?.stack ?? e);
+  }
   return new Response('OK');
 }
 
