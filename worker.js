@@ -165,6 +165,11 @@ async function onMessage(message) {
     return;
   }
 
+  if (message.text === '/info' && message.from.id === Number(OWNER_ID)) {
+    await handleInfo(message);
+    return;
+  }
+
   if (message.text) {
     await handleTextMessage(message);
   } else if (message.media_group_id && message.photo) {
@@ -195,6 +200,31 @@ async function handleStart(message) {
     const name = [message.from.first_name, message.from.last_name].filter(Boolean).join(' ');
     await sendMessage(Number(OWNER_ID), `[${name}](tg://user?id=${message.from.id}) started the bot.`);
   }
+}
+
+// ---------- Info Handler ---------- //
+
+async function handleInfo(message) {
+  if (!message.reply_to_message) {
+    await sendMessage(Number(OWNER_ID), 'Reply to a forwarded message with /info to get user details.');
+    return;
+  }
+
+  const referenceId = getReferenceIdFromReply(message.reply_to_message);
+  if (!referenceId) {
+    await sendMessage(Number(OWNER_ID), 'Could not find a Reference ID in that message.');
+    return;
+  }
+
+  const info = await getUsers(referenceId);
+  if (!info) {
+    await sendMessage(Number(OWNER_ID), 'Could not fetch user info.');
+    return;
+  }
+
+  const name = [info.first_name, info.last_name].filter(Boolean).join(' ');
+  const username = info.username ? `@${info.username}` : 'no username';
+  await sendMessage(Number(OWNER_ID), `*Name:* [${name}](tg://user?id=${referenceId})\n*ID:* \`${referenceId}\`\n*Username:* ${username}`);
 }
 
 // ---------- Text Message Handler ---------- //
