@@ -5,6 +5,7 @@
 //   BOT_SECRET       — Secret for webhook verification
 //   OWNER_ID         — Your Telegram User ID or Group Chat ID (admin inbox)
 //   NOTIFY_ON_START  — Set to "true" to notify you when a user sends /start
+//   BOT_WELCOME_MESSAGE — Custom reply to /start (optional)
 
 // ---------- Constants ---------- //
 
@@ -71,6 +72,8 @@ async function unregisterWebhook() {
 async function onUpdate(update) {
   if (update.message) {
     await onMessage(update.message);
+  } else if (update.edited_message) {
+    await onEditedMessage(update.edited_message);
   }
 }
 
@@ -92,8 +95,19 @@ async function onMessage(message) {
 
 // ---------- Start Handler ---------- //
 
+async function onEditedMessage(message) {
+  if (message.chat.id === Number(OWNER_ID)) return;
+  const name = message.from?.first_name || 'User';
+  const content = message.text || message.caption || '(media)';
+  await sendMessage(
+    Number(OWNER_ID),
+    `✏️ [${name}](tg://user?id=${message.from.id}) edited a message:\n${content}\nReference ID: ${message.chat.id}`
+  );
+}
+
 async function handleStart(message) {
-  await sendMessage(message.from.id, "Hello! Send me a message and I'll forward it.");
+  const welcome = BOT_WELCOME_MESSAGE || "Hello! Send me a message and I'll forward it.";
+  await sendMessage(message.from.id, welcome);
 
   if (NOTIFY_ON_START === 'true') {
     const name = [message.from.first_name, message.from.last_name].filter(Boolean).join(' ');
