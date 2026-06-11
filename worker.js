@@ -93,7 +93,7 @@ async function onMessage(message) {
   await handleMessage(message);
 }
 
-// ---------- Start Handler ---------- //
+// ---------- Edited Message Handler ---------- //
 
 async function onEditedMessage(message) {
   if (message.chat.id === Number(OWNER_ID)) return;
@@ -106,7 +106,7 @@ async function onEditedMessage(message) {
 }
 
 async function handleStart(message) {
-  const welcome = BOT_WELCOME_MESSAGE || "Hello! Send me a message and I'll forward it.";
+  const welcome = globalThis.BOT_WELCOME_MESSAGE || "Hello! Send me a message and I'll forward it.";
   await sendMessage(message.from.id, welcome);
 
   if (NOTIFY_ON_START === 'true') {
