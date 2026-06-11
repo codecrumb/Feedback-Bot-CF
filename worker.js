@@ -111,7 +111,7 @@ async function handleStart(message) {
 
   if (NOTIFY_ON_START === 'true') {
     const name = [message.from.first_name, message.from.last_name].filter(Boolean).join(' ');
-    await sendMessage(Number(OWNER_ID), `[${name}](tg://user?id=${message.from.id}) started the bot.`);
+    await sendMessage(Number(OWNER_ID), `[${name}](tg://user?id=${message.from.id}) started the bot.\nReference ID: ${message.from.id}`);
   }
 }
 
